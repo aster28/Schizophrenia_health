@@ -16,70 +16,27 @@ try {
   console.error("Error loading data:", err);
 }
 
-app.post("/chat", (req, res) => {
-  try {
-    const input = (req.body.message || "").toLowerCase().trim();
+app.post('/chat', (req, res) => {
+  let message = req.body.message.toLowerCase().trim();
 
-    // 🧠 Intent detection (AI-like)
-    if (input.includes("sad") || input.includes("hopeless") || input.includes("tired")) {
-      return res.json({
-        reply: "😞 You may be experiencing depression symptoms. Try relaxation, proper sleep, and consult a professional."
-      });
-    }
+  // remove punctuation like ? . !
+  message = message.replace(/[^\w\s]/gi, "");
 
-    if (input.includes("anxious") || input.includes("panic") || input.includes("fear")) {
-      return res.json({
-        reply: "😰 This looks like anxiety. Deep breathing, meditation, and herbs like Ashwagandha may help."
-      });
-    }
+  const faq = botData.faq.find(item => {
+    const questionMatch = item.question.toLowerCase() === message;
 
-    if (input.includes("hear voices") || input.includes("see things") || input.includes("not real")) {
-      return res.json({
-        reply: "🧠 These may be symptoms of schizophrenia or hallucinations. Please consult a doctor."
-      });
-    }
+    const keywordMatch = item.keywords &&
+      item.keywords.some(k => message.includes(k.toLowerCase()));
 
-    if (input.includes("no motivation") || input.includes("lazy") || input.includes("no energy")) {
-      return res.json({
-        reply: "🧪 This may relate to low dopamine. Exercise, sunlight, and healthy diet can help."
-      });
-    }
+    return questionMatch || keywordMatch;
+  });
 
-    // 📚 Dataset matching
-    for (let item of dataset) {
-      const question = (item.question || "").toLowerCase();
-      const keywords = item.keywords || [];
-
-      if (
-        input.includes(question) ||
-        question.includes(input) ||
-        keywords.some(k => input.includes(k.toLowerCase()))
-      ) {
-        return res.json({ reply: item.answer });
-      }
-    }
-
-    // 🤖 Smart fallback (feels AI)
-    if (input.includes("what") || input.includes("define") || input.includes("meaning")) {
-      return res.json({
-        reply: "🤖 I understand you're asking for a definition. Try keywords like schizophrenia, delusion, illusion, dopamine."
-      });
-    }
-
-    if (input.includes("treatment") || input.includes("cure")) {
-      return res.json({
-        reply: "💊 Treatments vary. You can ask about specific conditions like anxiety, depression, schizophrenia."
-      });
-    }
-
-    // Default
-    return res.json({
-      reply: "🤖 I'm still learning. Try asking about mental health topics like schizophrenia, anxiety, dopamine, delusion."
+  if (faq) {
+    res.json({ reply: faq.answer });
+  } else {
+    res.json({
+      reply: "🤖 I'm still learning. Try asking about schizophrenia, anxiety, dopamine, delusion."
     });
-
-  } catch (err) {
-    console.error("❌ CHAT ERROR:", err);
-    return res.status(500).json({ reply: "❌ Server error" });
   }
 });
 app.get("*", (req, res) => {
