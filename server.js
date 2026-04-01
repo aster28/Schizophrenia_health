@@ -30,6 +30,7 @@ app.post('/chat', (req, res) => {
   } else {
     res.json({ reply: "🤖 Try asking about schizophrenia or dopamine." });
   }
+}
 app.post("/chat", express.json(), (req, res) => {
   const { message } = req.body;
   const faq = require("./data/data.json").faq;
