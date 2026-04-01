@@ -18,26 +18,27 @@ try {
 
 app.post('/chat', (req, res) => {
   let message = req.body.message.toLowerCase().trim();
-
-  // remove punctuation like ? . !
   message = message.replace(/[^\w\s]/gi, "");
 
-  const faq = botData.faq.find(item => {
-    const questionMatch = item.question.toLowerCase() === message;
-
-    const keywordMatch = item.keywords &&
-      item.keywords.some(k => message.includes(k.toLowerCase()));
-
-    return questionMatch || keywordMatch;
-  });
+  const faq = botData.faq.find(item =>
+    item.question.toLowerCase() === message ||
+    (item.keywords && item.keywords.some(k => message.includes(k)))
+  );
 
   if (faq) {
     res.json({ reply: faq.answer });
   } else {
-    res.json({
-      reply: "🤖 I'm still learning. Try asking about schizophrenia, anxiety, dopamine, delusion."
-    });
+    res.json({ reply: "🤖 Try asking about schizophrenia or dopamine." });
   }
+app.post("/chat", express.json(), (req, res) => {
+  const { message } = req.body;
+  const faq = require("./data/data.json").faq;
+  
+  const answer = faq.find(q =>
+    q.question.toLowerCase().includes(message.toLowerCase())
+  );
+  
+  res.json({ answer: answer ? answer.answer : "No answer found." });
 });
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
